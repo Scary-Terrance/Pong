@@ -11,6 +11,7 @@ var rand = RandomNumberGenerator.new()
 var velocity = Vector2(0.0, 0.0)
 var direction = Vector2(0.0, 0.0)
 var hit = false
+var jam = false
 
 func _ready():
 	# Wait 2 seconds
@@ -43,7 +44,7 @@ func _check_bounds():
 			direction += _randomize_direction() / 2.0
 			direction = direction.normalized()
 			bump.play()
-		else:
+		elif !jam:
 			# The ball is stuck between the paddle and the border
 			# Squish the ball past into the goal by default
 			squish.play()
@@ -63,12 +64,17 @@ func _check_coll(coll):
 	if coll && hit == false:
 		# Bounce back away from the collision
 		direction = coll.normal
+		# This code triggers when the ball hits the y axis border right as it hits the paddle on the side
+		# Without this code the anti-squish will push the paddle off the screen using the ball
+		if self.position.y - 16 <= 0 || self.position.y + 16 >= 600 && direction.y == 0:
+			jam = true
 		# Add half of a random direction to keep things interesting
 		direction += _randomize_direction() / 2.0
 		direction = direction.normalized()
 		bump.play()
 		hit = true
 	else:
+		jam = false
 		hit = false
 	
 func _physics_process(delta):
